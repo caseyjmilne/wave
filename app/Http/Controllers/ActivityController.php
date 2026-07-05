@@ -29,9 +29,17 @@ class ActivityController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'date' => 'nullable|date',
+            'frequency' => 'required|in:daily,weekly,monthly,quarterly,yearly',
+            'times_per_period' => 'nullable|integer|min:1',
         ]);
 
-        auth()->user()->activities()->create($validated);
+        $activity = auth()->user()->activities()->create(
+            collect($validated)->only(['name', 'description', 'date'])->toArray()
+        );
+
+        $activity->schedule()->create(
+            collect($validated)->only(['frequency', 'times_per_period'])->toArray()
+        );
 
         return redirect()->route('activities.index');
     }
@@ -44,20 +52,26 @@ class ActivityController extends Controller
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Activity $activity)
     {
-        //
+        return view('activities.edit', compact('activity'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Activity $activity)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'date' => 'nullable|date',
+            'frequency' => 'required|in:daily,weekly,monthly,quarterly,yearly',
+            'times_per_period' => 'nullable|integer|min:1',
+        ]);
+
+        $activity->update(collect($validated)->only(['name', 'description', 'date'])->toArray());
+
+        $activity->schedule()->updateOrCreate([], collect($validated)->only(['frequency', 'times_per_period'])->toArray());
+
+        return redirect()->route('activities.index');
     }
 
     /**
