@@ -10,9 +10,13 @@ class ActivityController extends Controller
 
     public function index()
     {
-        return view('activities.index', [
-            'activities' => auth()->user()->activities()->latest()->get(),
-        ]);
+        $activities = auth()->user()->activities()->with('logs', 'schedule')->latest()->get();
+
+        $activities->each(function ($activity) {
+            $activity->streak = $activity->schedule ? $activity->currentStreak() : null;
+        });
+
+        return view('activities.index', compact('activities'));
     }
 
     /**

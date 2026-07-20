@@ -1,15 +1,6 @@
 <x-layouts::app title="Activities">
-    <a href="{{ route('activities.create') }}">Create Activity</a>
-
-    <ul>
-        @foreach ($activities as $activity)
-            <li class="flex gap-6 space-between">
-                <div>
-                    {{ $activity->name }} — {{ $activity->date }}
-                </div>
-                <a href="{{ route('activities.edit', $activity->id) }}">Edit</a>
-                <livewire:activities.delete-button :activity="$activity" />
-            </li>
-        @endforeach
-    </ul>
+    <div class="mb-10">
+        <a href="{{ route('activities.create') }}" class="border border-zinc-100 px-2 py-1">Create Activity</a>
+    </div>
+    <x-activity-list :activities="$activities" />
 </x-layouts::app>
