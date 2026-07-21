@@ -8,7 +8,7 @@ use App\Models\Activity;
 
 class ActivityLog extends Model
 {
-    protected $fillable = ['activity_id', 'completed_at', 'status'];
+    protected $fillable = ['activity_id', 'title', 'completed_at', 'status'];
     protected $casts = [
         'completed_at' => 'datetime',
         'status' => ActivityLogStatus::class,

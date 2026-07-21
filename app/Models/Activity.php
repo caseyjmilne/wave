@@ -61,6 +61,45 @@ class Activity extends Model
         };
     }
 
+    /**
+     * The user-facing title for a log falling in the period containing $date.
+     * Computed once at log-creation time so it stays stable even if sibling
+     * logs are later added, completed, or removed.
+     */
+    public function nextLogTitle($date, ?int $position = null): string
+    {
+        $schedule = $this->schedule;
+
+        if (! $schedule) {
+            return 'Log for '.$date->format('M j, Y');
+        }
+
+        [$start, $end] = $this->periodBounds($date, $schedule->frequency);
+        $timesPerPeriod = $schedule->times_per_period;
+
+        $position ??= $this->logs()->whereBetween('created_at', [$start, $end])->count() + 1;
+
+        if ($timesPerPeriod <= 1) {
+            return match ($schedule->frequency) {
+                'daily' => 'Log for '.$start->format('M j, Y'),
+                'weekly' => 'Week of '.$start->format('M j'),
+                'monthly' => $start->format('F Y').' log',
+                'quarterly' => 'Q'.$start->quarter.' '.$start->year.' log',
+                'yearly' => $start->year.' log',
+            };
+        }
+
+        $periodLabel = match ($schedule->frequency) {
+            'daily' => 'today',
+            'weekly' => 'this week',
+            'monthly' => 'this month',
+            'quarterly' => 'this quarter',
+            'yearly' => 'this year',
+        };
+
+        return "Log {$position} of {$timesPerPeriod} {$periodLabel}";
+    }
+
     public function backfillLogs(): bool
     {
         if (!$this->schedule) return false;
@@ -82,7 +121,10 @@ class Activity extends Model
             $needed = $timesPerPeriod - $existing;
 
             for ($i = 0; $i < $needed; $i++) {
-                $this->logs()->create(['completed_at' => null]);
+                $this->logs()->create([
+                    'completed_at' => null,
+                    'title' => $this->nextLogTitle($start, $existing + $i + 1),
+                ]);
                 $refreshed = true;
             }
 
