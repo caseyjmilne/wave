@@ -9,7 +9,8 @@ use Livewire\Component;
 class LogTable extends Component
 {
     public Activity $activity;
-    public ?int $confirmingRevertId = null;
+    public ?int $confirmingLogId = null;
+    public ?string $confirmingTargetStatus = null;
 
     public function complete(int $logId): void
     {
@@ -20,7 +21,7 @@ class LogTable extends Component
         }
 
         if ($log->isCompleted()) {
-            $this->confirmingRevertId = $logId;
+            $this->confirm($logId, ActivityLogStatus::Pending);
 
             return;
         }
@@ -39,8 +40,16 @@ class LogTable extends Component
             return;
         }
 
+        // Undoing a completion (either back to pending, or over to skipped)
+        // always needs confirmation. Skipping straight to completed doesn't.
+        if ($log->isCompleted()) {
+            $this->confirm($logId, ActivityLogStatus::Skipped);
+
+            return;
+        }
+
         if ($log->isSkipped()) {
-            $this->confirmingRevertId = $logId;
+            $this->confirm($logId, ActivityLogStatus::Pending);
 
             return;
         }
@@ -51,19 +60,28 @@ class LogTable extends Component
         ]);
     }
 
-    public function confirmRevert(): void
+    public function confirmChange(): void
     {
-        $this->activity->logs()->find($this->confirmingRevertId)?->update([
-            'status' => ActivityLogStatus::Pending,
-            'completed_at' => null,
+        $status = ActivityLogStatus::from($this->confirmingTargetStatus);
+
+        $this->activity->logs()->find($this->confirmingLogId)?->update([
+            'status' => $status,
+            'completed_at' => $status === ActivityLogStatus::Completed ? now() : null,
         ]);
 
-        $this->confirmingRevertId = null;
+        $this->cancelChange();
     }
 
-    public function cancelRevert(): void
+    public function cancelChange(): void
     {
-        $this->confirmingRevertId = null;
+        $this->confirmingLogId = null;
+        $this->confirmingTargetStatus = null;
+    }
+
+    private function confirm(int $logId, ActivityLogStatus $targetStatus): void
+    {
+        $this->confirmingLogId = $logId;
+        $this->confirmingTargetStatus = $targetStatus->value;
     }
 
     public function render()

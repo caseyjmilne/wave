@@ -40,15 +40,20 @@
         </div>
     @endif
 
-    @if ($confirmingRevertId)
-        @php($revertingLog = $logs->firstWhere('id', $confirmingRevertId))
+    @if ($confirmingLogId)
+        @php($confirmingLog = $logs->firstWhere('id', $confirmingLogId))
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div class="w-full max-w-sm rounded-lg bg-white p-6 dark:bg-zinc-800">
-                <h2 class="mb-2 text-lg font-semibold">Undo {{ $revertingLog?->status->label() }}?</h2>
-                <p class="mb-4 text-zinc-600 dark:text-zinc-400">This sets "{{ $revertingLog?->title }}" back to pending.</p>
+                @if ($confirmingTargetStatus === 'skipped')
+                    <h2 class="mb-2 text-lg font-semibold">Mark as skipped?</h2>
+                    <p class="mb-4 text-zinc-600 dark:text-zinc-400">This undoes the completion for "{{ $confirmingLog?->title }}".</p>
+                @else
+                    <h2 class="mb-2 text-lg font-semibold">Undo {{ $confirmingLog?->status->label() }}?</h2>
+                    <p class="mb-4 text-zinc-600 dark:text-zinc-400">This sets "{{ $confirmingLog?->title }}" back to pending.</p>
+                @endif
                 <div class="flex justify-end gap-2">
-                    <button wire:click="cancelRevert" class="rounded border px-4 py-2">Cancel</button>
-                    <button wire:click="confirmRevert" class="rounded bg-zinc-800 px-4 py-2 text-white dark:bg-zinc-200 dark:text-zinc-900">Yes, revert</button>
+                    <button wire:click="cancelChange" class="rounded border px-4 py-2">Cancel</button>
+                    <button wire:click="confirmChange" class="rounded bg-zinc-800 px-4 py-2 text-white dark:bg-zinc-200 dark:text-zinc-900">Yes, continue</button>
                 </div>
             </div>
         </div>
