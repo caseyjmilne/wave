@@ -2,27 +2,28 @@
     @if ($logs->isEmpty())
         <p class="text-sm text-zinc-500">No logs yet.</p>
     @else
-        <div class="grid grid-cols-[minmax(0,1.5fr)_auto_minmax(0,1.5fr)_auto] items-center gap-x-4 gap-y-1 text-sm">
-            <div class="contents text-zinc-500">
-                <div class="border-b border-zinc-200 pb-1 dark:border-zinc-700">Log</div>
-                <div class="border-b border-zinc-200 pb-1 dark:border-zinc-700">Status</div>
-                <div class="border-b border-zinc-200 pb-1 dark:border-zinc-700">Notes</div>
-                <div class="border-b border-zinc-200 pb-1 dark:border-zinc-700"></div>
-            </div>
-
+        <div class="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-700">
             @foreach ($logs as $log)
-                <div class="contents" wire:key="activity-log-{{ $log->id }}">
-                    <div class="py-1">{{ $log->title ?? 'Log' }}</div>
-                    <div class="py-1">
-                        {{ $log->completed_at?->format('Y-m-d H:i') ?? $log->status->label() }}
+                <div class="flex items-center justify-between gap-4 py-2" wire:key="activity-log-{{ $log->id }}">
+                    <div>
+                        <div class="font-medium">{{ $log->title ?? 'Log' }}</div>
+                        <div class="text-sm text-zinc-500">
+                            @if ($log->completed_at)
+                                Completed {{ $log->completed_at->format('M j, Y g:ia') }}
+                            @else
+                                {{ $log->status->label() }}
+                            @endif
+                            @if ($log->notes)
+                                · {{ $log->notes }}
+                            @endif
+                        </div>
                     </div>
-                    <div class="py-1 text-zinc-500">{{ $log->notes }}</div>
-                    <div class="py-1 text-right">
-                        @if ($log->isPending())
-                            <button wire:click="complete({{ $log->id }})" class="mr-2 text-green-600">Complete</button>
+                    @if ($log->isPending())
+                        <div class="flex shrink-0 gap-3 text-sm">
+                            <button wire:click="complete({{ $log->id }})" class="text-green-600">Complete</button>
                             <button wire:click="skip({{ $log->id }})" class="text-zinc-500">Skip</button>
-                        @endif
-                    </div>
+                        </div>
+                    @endif
                 </div>
             @endforeach
         </div>
