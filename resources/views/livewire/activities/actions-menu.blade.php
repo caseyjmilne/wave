@@ -5,6 +5,7 @@
 
     @if ($open)
         <div class="absolute left-0 top-full mt-1 z-10 w-32 rounded border border-zinc-200 bg-white text-sm shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+            <a href="{{ route('activities.log.create', $activity->id) }}" class="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700">Log</a>
             <a href="{{ route('activities.edit', $activity->id) }}" class="block px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-700">Edit</a>
             <button wire:click="$set('confirmingDelete', true)" class="block w-full px-4 py-2 text-left text-red-600 hover:bg-zinc-100 dark:hover:bg-zinc-700">Delete</button>
         </div>
