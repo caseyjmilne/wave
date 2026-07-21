@@ -9,10 +9,23 @@ use Livewire\Component;
 class LogTable extends Component
 {
     public Activity $activity;
+    public ?int $confirmingRevertId = null;
 
     public function complete(int $logId): void
     {
-        $this->activity->logs()->find($logId)?->update([
+        $log = $this->activity->logs()->find($logId);
+
+        if (! $log) {
+            return;
+        }
+
+        if ($log->isCompleted()) {
+            $this->confirmingRevertId = $logId;
+
+            return;
+        }
+
+        $log->update([
             'status' => ActivityLogStatus::Completed,
             'completed_at' => now(),
         ]);
@@ -20,10 +33,37 @@ class LogTable extends Component
 
     public function skip(int $logId): void
     {
-        $this->activity->logs()->find($logId)?->update([
+        $log = $this->activity->logs()->find($logId);
+
+        if (! $log) {
+            return;
+        }
+
+        if ($log->isSkipped()) {
+            $this->confirmingRevertId = $logId;
+
+            return;
+        }
+
+        $log->update([
             'status' => ActivityLogStatus::Skipped,
             'completed_at' => null,
         ]);
+    }
+
+    public function confirmRevert(): void
+    {
+        $this->activity->logs()->find($this->confirmingRevertId)?->update([
+            'status' => ActivityLogStatus::Pending,
+            'completed_at' => null,
+        ]);
+
+        $this->confirmingRevertId = null;
+    }
+
+    public function cancelRevert(): void
+    {
+        $this->confirmingRevertId = null;
     }
 
     public function render()

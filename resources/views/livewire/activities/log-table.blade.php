@@ -5,11 +5,21 @@
         <div class="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-700">
             @foreach ($logs as $log)
                 <div class="flex items-center gap-3 py-2 text-sm" wire:key="activity-log-{{ $log->id }}">
-                    <div class="flex w-28 shrink-0 gap-2">
-                        @if ($log->isPending())
-                            <button wire:click="complete({{ $log->id }})" class="text-green-600">Complete</button>
-                            <button wire:click="skip({{ $log->id }})" class="text-zinc-500">Skip</button>
-                        @endif
+                    <div class="flex w-44 shrink-0 gap-2 text-xs">
+                        <button
+                            wire:click="complete({{ $log->id }})"
+                            class="flex items-center gap-1 rounded px-2 py-1 font-medium {{ $log->isCompleted() ? 'bg-green-600 text-white' : 'border border-zinc-300 text-green-600 hover:bg-green-50 dark:border-zinc-700 dark:hover:bg-zinc-800' }}"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check h-3.5 w-3.5"><path d="M20 6 9 17l-5-5"/></svg>
+                            {{ $log->isCompleted() ? 'Completed' : 'Complete' }}
+                        </button>
+                        <button
+                            wire:click="skip({{ $log->id }})"
+                            class="flex items-center gap-1 rounded px-2 py-1 font-medium {{ $log->isSkipped() ? 'bg-amber-600 text-white' : 'border border-zinc-300 text-zinc-500 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800' }}"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward-icon lucide-skip-forward h-3.5 w-3.5"><path d="M21 4v16"/><path d="M6.029 4.285A2 2 0 0 0 3 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432z"/></svg>
+                            {{ $log->isSkipped() ? 'Skipped' : 'Skip' }}
+                        </button>
                     </div>
                     <div class="min-w-0 flex-1 truncate">
                         <span class="text-sm font-medium">{{ $log->title ?? 'Log' }}</span>
@@ -27,6 +37,20 @@
                     </div>
                 </div>
             @endforeach
+        </div>
+    @endif
+
+    @if ($confirmingRevertId)
+        @php($revertingLog = $logs->firstWhere('id', $confirmingRevertId))
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div class="w-full max-w-sm rounded-lg bg-white p-6 dark:bg-zinc-800">
+                <h2 class="mb-2 text-lg font-semibold">Undo {{ $revertingLog?->status->label() }}?</h2>
+                <p class="mb-4 text-zinc-600 dark:text-zinc-400">This sets "{{ $revertingLog?->title }}" back to pending.</p>
+                <div class="flex justify-end gap-2">
+                    <button wire:click="cancelRevert" class="rounded border px-4 py-2">Cancel</button>
+                    <button wire:click="confirmRevert" class="rounded bg-zinc-800 px-4 py-2 text-white dark:bg-zinc-200 dark:text-zinc-900">Yes, revert</button>
+                </div>
+            </div>
         </div>
     @endif
 </div>
