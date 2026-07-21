@@ -97,6 +97,10 @@ class Activity extends Model
             'yearly' => 'this year',
         };
 
+        if ($position > $timesPerPeriod) {
+            return "Log {$position} {$periodLabel}";
+        }
+
         return "Log {$position} of {$timesPerPeriod} {$periodLabel}";
     }
 

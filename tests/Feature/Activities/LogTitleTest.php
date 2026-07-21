@@ -42,3 +42,11 @@ test('backfilling logs assigns sequential titles within a period', function () {
 
     expect($titles->take(2)->all())->toBe(['Log 1 of 2 today', 'Log 2 of 2 today']);
 });
+
+test('logging beyond the scheduled count for a period drops the "of N" framing', function () {
+    $user = User::factory()->create();
+    $activity = Activity::create(['user_id' => $user->id, 'name' => 'Read']);
+    $activity->schedule()->create(['frequency' => 'weekly', 'times_per_period' => 3]);
+
+    expect($activity->nextLogTitle(now(), 4))->toBe('Log 4 this week');
+});
