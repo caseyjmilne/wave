@@ -20,7 +20,7 @@
                 <a href="{{ route('activities.edit', $activity->id) }}">Edit</a>
                 <livewire:activities.delete-button :activity="$activity" />
             </div>
-            <x-activity-log-table :logs="$activity->logs" />
+            <livewire:activities.log-table :activity="$activity" :key="'log-table-'.$activity->id" />
         </li>
     @endforeach
 </ul>
