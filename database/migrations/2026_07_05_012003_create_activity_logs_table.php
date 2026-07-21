@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
-            $table->timestamp('completed_at');
+            $table->enum('status', ['pending', 'completed', 'skipped'])->default('pending');
+            $table->timestamp('completed_at')->nullable();
             $table->timestamps();
         });
     }

@@ -12,6 +12,8 @@ class ActivityController extends Controller
     {
         $activities = auth()->user()->activities()->with('logs', 'schedule')->latest()->get();
 
+        $activities->each(fn ($activity) => $activity->backfillLogs());
+
         $activities->each(function ($activity) {
             $activity->streak = $activity->schedule ? $activity->currentStreak() : null;
         });
@@ -85,4 +87,5 @@ class ActivityController extends Controller
     {
         //
     }
+
 }

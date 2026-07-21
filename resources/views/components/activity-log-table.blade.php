@@ -11,7 +11,9 @@
         <tbody>
             @foreach ($logs as $log)
                 <tr>
-                    <td class="pr-4">{{ $log->completed_at->format('Y-m-d H:i') }}</td>
+                    <td class="pr-4">
+                        {{ $log->completed_at?->format('Y-m-d H:i') ?? ucfirst($log->status) }}
+                    </td>
                     <td>{{ $log->notes }}</td>
                 </tr>
             @endforeach

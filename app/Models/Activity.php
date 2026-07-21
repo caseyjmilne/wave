@@ -50,7 +50,7 @@ class Activity extends Model
         return $streak;
     }
 
-    private function periodBounds($date, $frequency): array
+    public function periodBounds($date, $frequency): array
     {
         return match ($frequency) {
             'daily' => [$date->copy()->startOfDay(), $date->copy()->endOfDay()],
@@ -59,6 +59,43 @@ class Activity extends Model
             'quarterly' => [$date->copy()->startOfQuarter(), $date->copy()->endOfQuarter()],
             'yearly' => [$date->copy()->startOfYear(), $date->copy()->endOfYear()],
         };
+    }
+
+    public function backfillLogs(): bool
+    {
+        if (!$this->schedule) return false;
+
+        $frequency = $this->schedule->frequency;
+        $timesPerPeriod = $this->schedule->times_per_period;
+
+        $lastLog = $this->logs()->latest('created_at')->first();
+        $cursor = $lastLog ? $lastLog->created_at->copy() : $this->created_at->copy();
+
+        $refreshed = false;
+
+        while (true) {
+            [$start, $end] = $this->periodBounds($cursor, $frequency);
+
+            if ($start->gt(now())) break;
+
+            $existing = $this->logs()->whereBetween('created_at', [$start, $end])->count();
+            $needed = $timesPerPeriod - $existing;
+
+            for ($i = 0; $i < $needed; $i++) {
+                $this->logs()->create(['completed_at' => null]);
+                $refreshed = true;
+            }
+
+            if ($end->gte(now())) break;
+
+            $cursor = $end->copy()->addSecond();
+        }
+
+        if ($refreshed) {
+            $this->load('logs');
+        }
+
+        return $refreshed;
     }
 
 }
